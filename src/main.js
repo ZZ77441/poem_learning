@@ -29,9 +29,11 @@ Vue.prototype.jinrishici = jinrishici;
 
 //注册全局组件
 import TopNav from "@/components/TopNav.vue";
-import PoemCard from './components/PoemCard.vue';
+import PoemCard from '@/components/PoemCard.vue';
+import Aside from '@/components/Aside.vue'
 Vue.component("top-nav", TopNav);
 Vue.component("poem-card", PoemCard);
+Vue.component("a-side", Aside);
 
 
 new Vue({

@@ -7,6 +7,11 @@ import UserPerson from '../views/UserPerson.vue'
 import AdminView from '../views/AdminView.vue'
 import AdminLogin from '../views/AdminLogin.vue'
 import AdminHome from '../views/AdminHome.vue'
+import UserManage from '../views/UserManage.vue'
+import PoemManage from '../views/PoemManage.vue'
+import AdminCharts from '../views/AdminCharts.vue'
+
+
 
 Vue.use(VueRouter)
 
@@ -53,8 +58,26 @@ const routes = [
       {
         path: 'home',
         name: 'admin_home',
-        component: AdminHome
-      }
+        redirect: '/admin/home/charts',
+        component: AdminHome,
+        children: [
+          {
+            path: 'user',
+            name: 'user_manage',
+            component: UserManage
+          },
+          {
+            path: 'poem',
+            name: 'poem_manage',
+            component: PoemManage
+          },
+          {
+            path: 'charts',
+            name: 'admin_charts',
+            component: AdminCharts
+          }
+        ]
+      },
 
     ]
   },

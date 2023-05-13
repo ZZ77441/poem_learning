@@ -1,5 +1,9 @@
 <template>
   <div class="home">
+    <div class="search-wrap">
+      <el-input placeholder="请输入搜索关键字" class="el-input"></el-input>
+      <el-button type="primary" class="el-button">搜索</el-button>
+    </div>
     <!-- <poem-card></poem-card> -->
     <div class="recommend">
       <h2>每日推荐</h2>
@@ -13,7 +17,7 @@
       <div class="rec_content_wrap">
         <div
           class="rec_content"
-          v-for="(item, index) in this.rec_detail.content"
+          v-for="(item, index) in rec_detail.content"
           :key="index"
         >
           {{ item }}
@@ -21,26 +25,75 @@
       </div>
       <!-- 标签 -->
       <div class="rec_tag_wrap">
-        <div
-          class="rec_tag"
-          v-for="(item2, index2) in this.matchTags"
-          :key="index2"
-        >
+        <div class="rec_tag" v-for="(item2, index2) in matchTags" :key="index2">
           {{ item2 }}
         </div>
       </div>
     </div>
 
-    <poem-card> </poem-card>
-    <poem-card> </poem-card>
-    <poem-card> </poem-card>
-    <poem-card> </poem-card>
-    <poem-card> </poem-card>
-    <poem-card> </poem-card>
-    <poem-card> </poem-card>
-    <poem-card> </poem-card>
+    <poem-card
+      v-for="(item, index) in recomendPoem"
+      :key="index"
+      :poem="item"
+    ></poem-card>
   </div>
 </template>
+
+
+
+<script>
+export default {
+  name: "HomeView",
+  data() {
+    return {
+      rec_detail: {},
+      matchTags: {},
+      recomendPoem: [],
+      poem: {
+        poemTitle: "",
+        poemAuthor: "",
+        poemDynasty: "",
+        poemContent: "",
+        poemComment: "",
+      },
+    };
+  },
+  methods: {
+    getPoemRandom() {
+      this.request.get("/poem/recommend").then((res) => {
+        // console.log(res);
+        if (res.code === "200") {
+          this.recomendPoem = res.data;
+          console.log(this.recomendPoem);
+        } else {
+          this.$message.error("数据加载错误！");
+        }
+      });
+    },
+  },
+  //在创建前获取今日推荐诗词
+  beforeCreate() {
+    this.jinrishici.load((result) => {
+      this.rec_detail = result.data.origin;
+      this.matchTags = result.data.matchTags;
+      //将内容转成json
+      let contentJSON = JSON.stringify(this.rec_detail.content);
+      this.poem.poemContent = contentJSON;
+      this.poem.poemTitle = this.rec_detail.title;
+      this.poem.poemAuthor = this.rec_detail.author;
+      this.poem.poemDynasty = this.rec_detail.dynasty;
+      this.poem.poemComment = JSON.stringify(this.matchTags);
+      console.log(this.poem);
+      this.request.post("/poem", this.poem).then((res) => {
+        console.log(res);
+      });
+    });
+  },
+  created() {
+    this.getPoemRandom();
+  },
+};
+</script>
 
 <style scoped>
 .home {
@@ -49,6 +102,43 @@
   /* align-items: center; */
   /* place-items: center; */
   width: 100%;
+}
+
+.search-wrap {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  margin-top: 80px;
+  width: 100%;
+  border-radius: 20px;
+  /* box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); */
+  justify-content: center;
+}
+
+.search-wrap .el-input {
+  height: 40px;
+  font-size: 14px;
+  color: #333;
+  border: none;
+  outline: none;
+  padding: 10px;
+  width: 600px;
+}
+
+.search-wrap .el-button {
+  height: 40px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: #fff;
+  background-color: rgb(93, 97, 70);
+  border-radius: 0 20px 20px 0;
+  padding: 0 20px;
+  cursor: pointer;
+}
+
+.search-wrap .el-button:hover {
+  background-color: steelblue;
 }
 
 .recommend {
@@ -89,6 +179,7 @@
 }
 
 .rec_tag_wrap {
+  display: block;
 }
 
 .rec_tag {
@@ -102,29 +193,3 @@
   margin-bottom: 10px;
 }
 </style>
-
-
-<script>
-import PoemCard from "@/components/PoemCard.vue";
-export default {
-  components: { PoemCard },
-  name: "HomeView",
-  data() {
-    return {
-      rec_detail: {},
-      matchTags: {},
-    };
-  },
-  methods: {},
-  //在创建前获取今日推荐诗词
-  beforeCreate() {
-    this.jinrishici.load((result) => {
-      // console.log(result);
-      this.rec_detail = result.data.origin;
-      this.matchTags = result.data.matchTags;
-      // console.log(this.rec_detail);
-      // console.log(this.matchTags);
-    });
-  },
-};
-</script>
