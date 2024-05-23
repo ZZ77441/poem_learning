@@ -24,9 +24,9 @@
         <el-menu-item-group>
           <span slot="title">分组一</span>
           <el-menu-item index="/admin/home/user">用户信息管理</el-menu-item>
-          <el-menu-item index="/admin/home/user_comment"
+          <!-- <el-menu-item index="/admin/home/user_comment"
             >用户注释管理</el-menu-item
-          >
+          > -->
         </el-menu-item-group>
       </el-submenu>
       <el-submenu index="2">

@@ -33,10 +33,12 @@
           </div>
           <el-dropdown style="margin-left: auto; cursor: pointer">
             <i class="el-icon-setting" style="margin-right: 15px"></i>
-            <span>王小虎</span>
+            <span>管理员</span>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item>个人信息</el-dropdown-item>
-              <el-dropdown-item>退出</el-dropdown-item>
+              <!-- <el-dropdown-item>个人信息</el-dropdown-item> -->
+              <el-dropdown-item @click.native="adminLogout()"
+                >退出</el-dropdown-item
+              >
             </el-dropdown-menu>
           </el-dropdown>
         </el-header>
@@ -71,6 +73,13 @@ export default {
       // this.$nextTick(() => {
       //   this.$refs.menu.collapse = this.isCollapse;
       // });
+    },
+    adminLogout() {
+      // let admin = localStorage.getItem("admin")
+      //   ? JSON.parse(localStorage.getItem("admin"))
+      //   : null;
+      // console.log(admin);
+      localStorage.removeItem("admin");
     },
   },
 };

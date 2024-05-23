@@ -16,11 +16,14 @@
       <router-link to="/">
         <el-menu-item index="1" route="">推荐</el-menu-item>
       </router-link>
-      <el-menu-item index="2">诗文</el-menu-item>
+      <router-link to="/category">
+        <el-menu-item index="2">分类</el-menu-item>
+      </router-link>
+      <!-- 
       <el-menu-item index="3">名句</el-menu-item>
       <el-menu-item index="4">作者</el-menu-item>
-      <el-menu-item index="5">古籍</el-menu-item>
-      <router-link to="/login">
+      <el-menu-item index="5">古籍</el-menu-item> -->
+      <router-link to="/person">
         <el-menu-item index="6">我的</el-menu-item>
       </router-link>
     </el-menu>

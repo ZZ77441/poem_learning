@@ -71,8 +71,8 @@
           批量删除
         </el-button>
       </el-popconfirm>
-      <el-button type="primary" icon="el-icon-upload2"> 导入 </el-button>
-      <el-button type="primary" icon="el-icon-download"> 导出 </el-button>
+      <!-- <el-button type="primary" icon="el-icon-upload2"> 导入 </el-button>
+      <el-button type="primary" icon="el-icon-download"> 导出 </el-button> -->
     </div>
     <!-- 表格框 -->
     <el-table

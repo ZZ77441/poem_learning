@@ -3,23 +3,29 @@
   <div class="poem-card">
     <!-- 标题 -->
     <div class="title-wrap">
-      <h2 class="title">{{ poem.poemTitle }}</h2>
+      <h2 class="title" v-highlight="keyword">{{ poem.poemTitle }}</h2>
       <div class="option">
         <span @click="showTranslate()">译</span>
         <span @click="showRecite()">背</span>
+        <span @click="userStar()" :class="starIcon"></span>
       </div>
     </div>
     <!-- 作者 -->
-    <div class="author" style="cursor: pointer" @click="handleToBaidu">
+    <div
+      class="author"
+      style="cursor: pointer"
+      @click="handleToBaidu"
+      v-highlight="keyword"
+    >
       {{ poem.poemAuthor + "(" + poem.poemDynasty + ")" }}
     </div>
     <!-- 诗词内容 -->
     <div class="content-wrap">
       <div class="content" v-for="(item, index) in content" :key="index">
-        {{ item }}
+        <span v-highlight="keyword">{{ item }}</span>
         <el-collapse-transition>
           <div class="content-translate" v-show="isShowTrans">
-            这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译
+            <!-- 这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里是翻译这里 -->
           </div>
         </el-collapse-transition>
       </div>
@@ -29,13 +35,16 @@
       <div class="tag" v-for="(item, index) in poemTag" :key="index">
         {{ item }}
       </div>
+      <div class="tag">{{ poem.category }}</div>
     </div>
 
+    <!-- 背诵窗口 -->
     <el-dialog
       :visible.sync="dialogFormVisible"
       width="700px"
       center
       title="古诗背诵"
+      v-dialogDrag
     >
       <div class="recite-wrap">
         <div
@@ -51,10 +60,36 @@
         v-model="inputRecite"
       ></el-input>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="centerDialogVisible = false">取 消</el-button>
+        <el-button @click="dialogFormVisible = false">取 消</el-button>
         <el-button type="primary" @click="submitRecite()">提 交</el-button>
       </span>
     </el-dialog>
+
+    <!-- 收藏窗口 -->
+    <div class="star-dialog">
+      <el-dialog
+        :visible.sync="starDialogVisible"
+        width="700px"
+        center
+        v-dialogDrag
+        :modal="false"
+        class="pointer"
+        title="收藏注释"
+      >
+        <div class="star-wrap">
+          <el-input
+            v-model="userComment.content"
+            type="textarea"
+            :rows="2"
+            placeholder="请输入内容,可为空"
+          ></el-input>
+        </div>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="cancelStar()">取 消</el-button>
+          <el-button type="primary" @click="submitStar()">提 交</el-button>
+        </span>
+      </el-dialog>
+    </div>
   </div>
 </template>
 
@@ -63,6 +98,21 @@ export default {
   name: "PoemCard",
   props: {
     poem: Object,
+    keyword: String,
+    AllStar: Boolean,
+  },
+  directives: {
+    //设置搜索框相同内容高亮
+    highlight: {
+      bind(el, binding) {
+        let keyword = binding.value;
+        let regex = new RegExp(keyword, "g");
+        el.innerHTML = el.innerHTML.replace(
+          regex,
+          `<span style="color: red;">${keyword}</span>`
+        );
+      },
+    },
   },
   data() {
     return {
@@ -75,7 +125,25 @@ export default {
       formLabelWidth: "120px",
       reciteBlank: [],
       inputRecite: "",
+      starIcon: "el-icon-star-off",
+      starDialogVisible: false,
+      userComment: {
+        userId: "",
+        poemId: "",
+        type: "",
+        content: "",
+      },
     };
+  },
+  watch: {
+    poemChange(oldPoem, newPoem) {
+      console.log(oldPoem, newPoem);
+    },
+  },
+  mounted() {
+    if (this.AllStar) {
+      this.starIcon = "el-icon-star-on";
+    }
   },
   created() {
     let data = this.poem.poemContent;
@@ -88,6 +156,16 @@ export default {
       window.open(url, "_blank");
     },
     showTranslate() {
+      this.request
+        .get("/trans?content=" + "五陵射雕客，走马占春光。")
+        .then((res) => {
+          console.log(res);
+          JSON.parse(res);
+          let unicode = res.trans_result.dst;
+          console.log(unicode);
+          let text = unescape(unicode.replace(/\\u/g, "%u"));
+          console.log(text);
+        });
       this.isShowTrans = !this.isShowTrans;
     },
     showRecite() {
@@ -123,6 +201,39 @@ export default {
       } else {
         this.$message.warning("似乎有错哦！");
       }
+    },
+    //用户收藏
+    userStar() {
+      if (localStorage.getItem("user") === null) {
+        this.$message.error("请先登录！");
+        this.$router.push("/login");
+        return;
+      }
+      if (this.starIcon == "el-icon-star-on") {
+        this.starIcon = "el-icon-star-off";
+      } else {
+        this.starIcon = "el-icon-star-on";
+        this.starDialogVisible = true;
+      }
+    },
+    cancelStar() {
+      this.starIcon = "el-icon-star-off";
+      this.starDialogVisible = false;
+    },
+    submitStar() {
+      let user = JSON.parse(localStorage.getItem("user"));
+      this.userComment.userId = user.userId;
+      this.userComment.poemId = this.poem.poemId;
+      console.log(this.userComment);
+      this.request.post("/user/starComment", this.userComment).then((res) => {
+        console.log(res);
+        if (res.code === "200") {
+          this.$message.success("收藏成功！");
+        } else {
+          this.$message.error("系统错误！");
+        }
+      });
+      this.starDialogVisible = false;
     },
   },
 };
@@ -240,5 +351,16 @@ export default {
   border-radius: 5px;
   margin-right: 10px;
   margin-bottom: 10px;
+}
+
+/* .star-dialog > .el-dialog__wrapper {
+  pointer-events: none;
+  /deep/ .el-dialog {
+    pointer-events: auto;
+  }
+} */
+
+.pointer {
+  pointer-events: auto !important;
 }
 </style>

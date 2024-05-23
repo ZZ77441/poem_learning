@@ -39,6 +39,7 @@
               placeholder="密码"
               class="input"
               v-model="user.password"
+              show-password
             />
           </el-form-item>
           <el-button class="btn" @click="userRegister">注册</el-button>

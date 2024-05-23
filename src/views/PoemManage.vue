@@ -34,9 +34,15 @@
       ></el-input>
       <el-input
         class="search-input"
-        placeholder="输入诗词标签"
+        placeholder="输入诗词注释"
         prefix-icon="el-icon-search"
         v-model="poemComment"
+      ></el-input>
+      <el-input
+        class="search-input"
+        placeholder="输入诗词类别"
+        prefix-icon="el-icon-search"
+        v-model="category"
       ></el-input>
       <el-button
         type="primary"
@@ -77,8 +83,8 @@
           批量删除
         </el-button>
       </el-popconfirm>
-      <el-button type="primary" icon="el-icon-upload2"> 导入 </el-button>
-      <el-button type="primary" icon="el-icon-download"> 导出 </el-button>
+      <!-- <el-button type="primary" icon="el-icon-upload2"> 导入 </el-button>
+      <el-button type="primary" icon="el-icon-download"> 导出 </el-button> -->
     </div>
     <!-- 表格框 -->
     <el-table
@@ -100,32 +106,10 @@
       </el-table-column>
       <el-table-column prop="poemDynasty" label="朝代" width="100" sortable>
       </el-table-column>
-      <el-table-column label="内容" sortable>
-        <template slot-scope="scope">
-          {{ formattContent(scope.row.poemContent) }}
-        </template>
+      <el-table-column prop="poemContent" label="内容" sortable>
       </el-table-column>
-      <el-table-column prop="poemComment" label="标签"> </el-table-column>
-      <!-- TODO -->
-      <!-- <el-table-column
-        prop="tag"
-        label="标签"
-        width="100"
-        :filters="[
-          { text: '家', value: '家' },
-          { text: '公司', value: '公司' },
-        ]"
-        :filter-method="filterTag"
-        filter-placement="bottom-end"
-      >
-        <template slot-scope="scope">
-          <el-tag
-            :type="scope.row.tag === '家' ? 'primary' : 'success'"
-            disable-transitions
-            >{{ scope.row.tag }}</el-tag
-          >
-        </template>
-      </el-table-column> -->
+      <el-table-column prop="poemComment" label="注释"> </el-table-column>
+      <el-table-column prop="category" label="分类"> </el-table-column>
       <el-table-column class="table-opt" align="center">
         <template slot-scope="scope">
           <!-- 如果表格宽度大于300，则展示带文字的按钮，否则展示只带图标的按钮 -->
@@ -175,16 +159,19 @@
             :rows="8"
           ></el-input>
         </el-form-item>
-        <el-form-item label="标签" :label-width="formLabelWidth">
+        <el-form-item label="注释" :label-width="formLabelWidth">
           <el-input
             v-model="editPoem.poemComment"
             autocomplete="off"
           ></el-input>
         </el-form-item>
+        <el-form-item label="类别" :label-width="formLabelWidth">
+          <el-input v-model="editPoem.category" autocomplete="off"></el-input>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="cancelEditUser()">取 消</el-button>
-        <el-button type="primary" @click="saveEditUser()">确 定</el-button>
+        <el-button type="primary" @click="saveEditPoem()">确 定</el-button>
       </div>
     </el-dialog>
 
@@ -209,6 +196,7 @@ export default {
   name: "PoemManage",
   data() {
     return {
+      pageName: "诗词管理",
       tableData: [],
       //数据总数
       total: 0,
@@ -227,6 +215,7 @@ export default {
       poemDynasty: "",
       poemContent: "",
       poemComment: "",
+      category: "",
       dialogFormVisible: false,
       //用来绑定新增和编辑框
       editPoem: {
@@ -235,9 +224,11 @@ export default {
         poemTitle: "",
         poemAuthor: "",
         poemDynasty: "",
-        poemContent: [],
-        poemComment: [],
+        poemContent: "",
+        poemComment: "",
+        category: "",
       },
+
       formLabelWidth: "80px",
       //多选信息存储
       multipleSelection: [],
@@ -258,15 +249,12 @@ export default {
             poemDynasty: this.poemDynasty,
             poemContent: this.poemContent,
             poemComment: this.poemComment,
+            category: this.category,
           },
         })
         .then((res) => {
           console.log(res);
           this.tableData = res.records;
-          // this.tableData.forEach((item) => {
-          //   item.poemContent = JSON.parse(item.poemContent);
-          //   item.poemComment = JSON.parse(item.poemComment);
-          // });
           this.total = res.total;
           this.pageNum = res.pages;
           this.pageSize = res.size;
@@ -296,6 +284,7 @@ export default {
       this.poemComment = "";
       this.poemDynasty = "";
       this.poemContent = "";
+      this.category = "";
       this.loadTable();
     },
     //新增窗口
@@ -303,9 +292,10 @@ export default {
       this.dialogFormVisible = true;
       this.editPoem = {};
     },
-    //保存新增用户
-    saveEditUser() {
+    //保存新增
+    saveEditPoem() {
       this.$nextTick(() => {
+        console.log(this.editPoem);
         this.dialogFormVisible = false;
       });
     },
@@ -318,20 +308,17 @@ export default {
       console.log(row);
       this.editPoem = row;
       this.dialogFormVisible = true;
-      // console.log(this.editUser);
     },
-    //删除用户
+    //删除诗词
     handleDelete(row) {
-      console.log(row);
-      //   this.request.delete("/admin/" + row.userId).then((res) => {
-      //     console.log(res);
-      //     if (res) {
-      //       this.$message.success("删除成功!");
-      //     } else {
-      //       this.$message.error("删除失败!");
-      //     }
-      //     this.loadTable();
-      //   });
+      this.request.delete("/poem/" + row.poemId).then((res) => {
+        if (res) {
+          this.$message.success("删除成功!");
+        } else {
+          this.$message.error("删除失败!");
+        }
+        this.loadTable();
+      });
     },
     //多选表单
     handleSelectionChange(val) {
@@ -339,43 +326,21 @@ export default {
     },
     //多选删除
     handleDeleteBatch() {
-      //   let ids = this.multipleSelection.map((v) => v.userId);
-      //   if (ids == false) {
-      //     this.$message.error("未选中数据!");
-      //     return;
-      //   }
-      //   console.log(ids);
-      //   this.request.delete("/admin/deleteBatch", { data: ids }).then((res) => {
-      //     console.log(res);
-      //     if (res) {
-      //       this.$message.success("删除成功!");
-      //     } else {
-      //       this.$message.error("删除失败!");
-      //     }
-      //     this.loadTable();
-      //   });
-    },
-    //TODO
-    resetDateFilter() {
-      this.$refs.filterTable.clearFilter("date");
-    },
-    clearFilter() {
-      this.$refs.filterTable.clearFilter();
-    },
-    formatter(row, column) {
-      console.log(column);
-      return row.address;
-    },
-    filterTag(value, row) {
-      return row.tag === value;
-    },
-    filterHandler(value, row, column) {
-      const property = column["property"];
-      return row[property] === value;
-    },
-    formattContent(content) {
-      // console.log(JSON.parse(content));
-      return JSON.parse(content);
+      let ids = this.multipleSelection.map((v) => v.poemId);
+      if (ids == false) {
+        this.$message.error("未选中数据!");
+        return;
+      }
+      console.log(ids);
+      this.request.delete("/poem/deleteBatch", { data: ids }).then((res) => {
+        console.log(res);
+        if (res) {
+          this.$message.success("删除成功!");
+        } else {
+          this.$message.error("删除失败!");
+        }
+        this.loadTable();
+      });
     },
   },
   created() {

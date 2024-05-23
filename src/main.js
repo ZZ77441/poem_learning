@@ -6,6 +6,7 @@ import 'element-ui/lib/theme-chalk/index.css';
 import './assets/global.css';
 import axios from 'axios'
 import request from './utils/request';
+import './utils/directives.js';
 var echarts = require('echarts');
 
 //今日诗词接口

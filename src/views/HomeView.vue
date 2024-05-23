@@ -1,11 +1,17 @@
 <template>
   <div class="home">
     <div class="search-wrap">
-      <el-input placeholder="请输入搜索关键字" class="el-input"></el-input>
-      <el-button type="primary" class="el-button">搜索</el-button>
+      <el-input
+        placeholder="请输入搜索关键字"
+        class="el-input"
+        v-model="keyword"
+      ></el-input>
+      <el-button type="primary" class="el-button" @click="searchPoem()"
+        >搜索</el-button
+      >
     </div>
     <!-- <poem-card></poem-card> -->
-    <div class="recommend">
+    <div class="recommend" v-show="rec_visible">
       <h2>每日推荐</h2>
       <!-- 标题 -->
       <div class="rec_title">{{ rec_detail.title }}</div>
@@ -32,9 +38,10 @@
     </div>
 
     <poem-card
-      v-for="(item, index) in recomendPoem"
-      :key="index"
+      v-for="item in updatedRecomendPoem"
+      :key="item.poemId"
       :poem="item"
+      :keyword="keyword"
     ></poem-card>
   </div>
 </template>
@@ -42,20 +49,26 @@
 
 
 <script>
+import PoemCard from "@/components/PoemCard.vue";
 export default {
+  components: { PoemCard },
   name: "HomeView",
   data() {
     return {
       rec_detail: {},
       matchTags: {},
       recomendPoem: [],
+      searchResPoem: [],
       poem: {
         poemTitle: "",
         poemAuthor: "",
         poemDynasty: "",
         poemContent: "",
         poemComment: "",
+        category: "",
       },
+      keyword: "",
+      rec_visible: true,
     };
   },
   methods: {
@@ -69,6 +82,48 @@ export default {
           this.$message.error("数据加载错误！");
         }
       });
+    },
+    searchPoem() {
+      if (this.keyword != null) {
+        this.request
+          .get("/poem/search", {
+            params: {
+              keyword: this.keyword,
+            },
+          })
+          .then((res) => {
+            console.log(res);
+            if (res.code === "200") {
+              this.searchResPoem = res.data;
+              this.recomendPoem = this.searchResPoem;
+              this.$message.success("搜索成功！");
+            } else {
+              this.$message.error("数据加载错误！");
+            }
+          });
+        this.rec_visible = false;
+      }
+    },
+  },
+  watch: {
+    recomendPoem(newValue) {
+      // 销毁上一次的 poem-card 组件
+      this.prevRecomendPoemLength = 0;
+      this.$nextTick(() => {
+        // 使用 $nextTick 确保上一次的组件已经被销毁
+        this.prevRecomendPoemLength = newValue.length;
+      });
+    },
+  },
+  computed: {
+    highlightedKeyword() {
+      let regex = new RegExp(this.keyword, "gi");
+      return this.keyword
+        ? this.keyword.replace(regex, '<span style="color: red;">$&</span>')
+        : "";
+    },
+    updatedRecomendPoem() {
+      return [...this.recomendPoem];
     },
   },
   //在创建前获取今日推荐诗词
